@@ -7,14 +7,24 @@
     <br/>
     <br/>
     {% if imageName != "" %}
-    <div>Results for Image {{ imageName }}:</div>
-    <br/>
-    <div>Match to Ashkenazi: {{ ashkenazi }}%</div>
-    <br/>
-    <div>Match to Not Ashkenazi: {{ notAshkenazi }}%</div>
+        {% if imageName.startswith("Format error:") %}
+            <div>{{ imageName }}</div>
+            <div>Allowed image formats: .jpg, .jpeg, .png, .jpe </div>
+        {% else %}
+            <div>Results for Image {{ imageName }}:</div>
+            <br/>
+            <div>Ashkenazi (confidence): {{ ashkenazi }}%</div>
+            <br/>
+            <div>Not Ashkenazi (confidence): {{ notAshkenazi }}%</div>
+        {% endif %}
     {% else %}
     <div>
         <input type="file" name="image">
+    </div>
+    <br/>
+    <br/>
+    <div>
+        Allowed image formats: .jpg, .jpeg, .png, .jpe 
     </div>
     <br/>
     <br/>

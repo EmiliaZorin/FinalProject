@@ -13,7 +13,7 @@ from re import compile
 from functools import wraps
 import string
 import secrets
-from flask_uploads import UploadSet, configure_uploads, IMAGES 
+from flask_uploads import UploadSet, configure_uploads, IMAGES, UploadNotAllowed
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.pymongo import ModelView
 from predictFromWeb import runPredict
@@ -27,6 +27,7 @@ app.config['RECAPTCHA_USE_SSL']= False
 app.config['RECAPTCHA_PUBLIC_KEY'] = RECAPTCHA_SITE_KEY
 app.config['RECAPTCHA_PRIVATE_KEY'] = RECAPTCHA_SECRET_KEY
 app.config['RECAPTCHA_OPTIONS'] = {'theme':'white'}
+# app.config['SERVER_NAME'] = SERVER_NAME
 app.secret_key = APP_SECRET_KEY
 
 # MongoDB fields
@@ -442,13 +443,18 @@ def verifyResetPass():
 @isLogin
 def upload():
     if request.method == 'POST' and 'image' in request.files:
-        imageName = photos.save(request.files['image'])
+        try:
+            imageName = photos.save(request.files['image'])
+        except UploadNotAllowed:
+            imageName = "Format error: The requested file extension is not allowed!"
+            return render_template('upload.html', imageName=imageName)
         folderID = str(randrange(1000, 100000))
         if not os.path.exists(IMAGES_PATH):
             os.mkdir(IMAGES_PATH)
         os.mkdir(os.path.join(IMAGES_PATH, folderID)) # Make a folder with the generated folderID for each client
         os.replace(os.path.join(IMAGES_PATH, imageName), os.path.join(IMAGES_PATH, folderID, imageName)) # Move the image to its folder
         results = runPredict(folderID=folderID) # Run prediction on the folder, includes crop
+        print(datetime.now())
         return render_template('upload.html', imageName=imageName, ashkenazi=results["ashkenazi"], notAshkenazi=results["notAshkenazi"])
     return render_template('upload.html', imageName="")
 
